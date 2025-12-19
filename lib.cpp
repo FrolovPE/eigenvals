@@ -1343,3 +1343,75 @@ void clear(double *block_mm,double *block_ml,double *block_ll,double *tmpblock_m
 
 
 
+void threediag(double *a,int n,double eps)
+{
+    if(!a)
+    {
+        printf("error in threediag\n");
+        return;
+    }
+
+
+    for(int j = 0 ; j < n ; j++)
+    {
+        for(int i = n - 1; i >= j + 2; i--)
+        {
+            double x = a[(i-1) * n + j];
+            double y = a[(i) * n + j];
+
+            // printf("fabs(y) = %lf eps = %lf\n",fabs(y),eps);
+
+            if(fabs(y) < eps) continue;
+
+            double r = sqrt(x*x+y*y);
+            double x1 = x/r;
+            double x2 = -y/r;
+
+            a[(i-1) * n + j] = x1 * x - y * x2;
+            a[(i) * n + j] = x2 * x + y * x1;
+
+            //mult all others columns T*A
+            for(int s = j + 1; s < n; s++)
+            {
+                double s1 = a[(i-1) * n + s];
+                double s2 = a[(i) * n + s];
+                a[(i-1) * n + s] = x1 * s1 - s2 * x2;
+                a[(i) * n + s] = x2 * s1 + s2 * x1;
+            }
+
+             // A*T^{t}
+            for(int s = 0; s < n; s++)
+            {
+                double s1 = a[s * n + (i-1)];
+                double s2 = a[s * n + i];
+                a[s * n + (i-1)] = x1 * s1 - s2 * x2;
+                a[s * n + i] = x2 * s1 + s2 * x1;
+            }
+
+            a[i * n + j] = 0;
+            a[j * n + i] = 0;
+        }
+    }
+
+
+
+
+}
+
+double trace(double *a, int n)
+{
+    if(!a)
+    {
+        printf("error in trace\n");
+        return -1;
+    }
+
+    double s = 0;
+
+    for(int i = 0 ; i < n ; i++)
+    {
+        s += a[i * n + i];
+    }
+
+    return s;
+}

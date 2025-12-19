@@ -56,3 +56,5 @@ void* parallelSolve1(void* ptr);
 void pllinit_matrix(double *a, int s,int n , int m , int k, int p);
 void pllinit_vectorb(double *b,double *a,int n , int m , int k, int p);
 void clear(double *block_mm,double *block_ml,double *block_ll,double *tmpblock_mm,double *tmpblock_ml,double *tmpblock_ml1,double *tmpblock_ll,double *invblock_mm,double *invblock_ll,double *diagblock_mm,double *diaginvblock_mm,double *vecb_m,double *vecb_l,double *tmpvecb_m, double *tmpvecb_l,int *colsw);
+void threediag(double *a,int n,double eps);
+double trace(double *a, int n);

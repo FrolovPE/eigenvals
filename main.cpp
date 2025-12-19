@@ -1,5 +1,9 @@
 #include <iostream>
 #include "lib.h"
+#include <fenv.h>
+int feenableexcept(int excepts);
+int fedisableexcept(int excepts);
+int fegetexcept(void);
 
 
 int main(int argc, char **argv)
@@ -8,6 +12,7 @@ int main(int argc, char **argv)
     double eps;
     double t1{},t2{},r1{},r2{};
     char *filename{};
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW);
 
     if(!((argc == 5 || argc == 6) && sscanf(argv[1], "%d", &n)==1 && sscanf(argv[2], "%d", &m)==1 && sscanf(argv[3], "%lf", &eps)==1 && sscanf(argv[4], "%d", &k)==1)) 
     {
@@ -64,9 +69,21 @@ int main(int argc, char **argv)
         }
     }
 
+    
+
 
     printf("Matrix A;\n");
     printlxn(a,n,n,m);
+
+    double trA = trace(a,n);
+
+    threediag(a,n,eps*normofmatrix(a,n));
+
+    double trdA = trace(a,n);
+
+    printlxn(a,n,n,m);
+
+    printf("trA = %lf trdA = %lf\n",trA,trdA);
 
 
     delete []a;
