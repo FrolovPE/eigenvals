@@ -8,6 +8,7 @@
 #include <sys/sysinfo.h>
 #include <cmath>
 #include "mytime.h"
+#define ITER 2000
 
 
 #define EPS64 1e-64
@@ -57,4 +58,9 @@ void pllinit_matrix(double *a, int s,int n , int m , int k, int p);
 void pllinit_vectorb(double *b,double *a,int n , int m , int k, int p);
 void clear(double *block_mm,double *block_ml,double *block_ll,double *tmpblock_mm,double *tmpblock_ml,double *tmpblock_ml1,double *tmpblock_ll,double *invblock_mm,double *invblock_ll,double *diagblock_mm,double *diaginvblock_mm,double *vecb_m,double *vecb_l,double *tmpvecb_m, double *tmpvecb_l,int *colsw);
 void threediag(double *a,int n,double eps);
+<<<<<<< HEAD
 double trace(double *a, int n);
+=======
+double trace(double *a, int n);
+void QR_refl(double *a,int n, double eps,int &itr);
+>>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')

@@ -1256,90 +1256,7 @@ int solution(int n, int m, double *a, double *b, double *x,
 
 
 
-void pllinit_matrix(double *a,int s, int n , int m , int k, int p)
-{
-    int i,i2,j;
-    pthread_barrier_t b;
-    pthread_barrier_init(&b,0,p);
 
-    for(i = k*m; i<n; i+=m*p)
-    {
-        int h =(i+m<n ? m:n-i);
-
-        for(i2 = i; i2<i+h ; i2++)
-        {
-            for(j = 0; j < n ; j++)
-            {
-                a[i2*n + j] = f(s,n,i2,j);
-            }
-        }
-    }
-
-    // pthread_barrier_wait(&b);
-
-    pthread_barrier_destroy(&b);
-
-}
-
-void pllinit_vectorb(double *b,double *a, int n , int m , int k, int p)
-{
-
-    int i,i2,j;
-    pthread_barrier_t bar;
-    pthread_barrier_init(&bar,0,p);
-
-    for(i = k*m; i<n; i+=m*p)
-    {
-        int h =(i+m<n ? m:n-i);
-
-        for(i2 = i; i2<i+h ; i2++)
-        {
-            double sumbi = 0;
-    //     for(int k = 0; k <(n-1)/2+1 ; k++)
-    //     {
-    //         sumbi+= a[i*n+2*k];
-            
-            
-    //     }
-        
-    //     b[i] = sumbi;
-            for(j = 0; j <n; j+=2)
-                    {
-                        sumbi+= a[i2*n+j];
-                    }
-
-                    b[i2] = sumbi;
-            
-        }
-    }
-    
-
-    // pthread_barrier_wait(&b);
-
-    pthread_barrier_destroy(&bar);
-
-}
-
-
-void clear(double *block_mm,double *block_ml,double *block_ll,double *tmpblock_mm,double *tmpblock_ml,double *tmpblock_ml1,double *tmpblock_ll,double *invblock_mm,double *invblock_ll,double *diagblock_mm,double *diaginvblock_mm,double *vecb_m,double *vecb_l,double *tmpvecb_m, double *tmpvecb_l,int *colsw)
-{
-    delete []block_mm ;
-    delete []block_ml ;
-    delete []block_ll ;
-    delete []tmpblock_mm ;
-    delete []tmpblock_ml ;
-    delete []tmpblock_ml1 ;
-    delete []tmpblock_ll ;
-    delete []invblock_mm ;
-    delete []invblock_ll ;
-    delete []diagblock_mm ;
-    delete []diaginvblock_mm ;
-    delete []vecb_m ;
-    delete []vecb_l ;
-    delete []tmpvecb_m ;
-    delete []tmpvecb_l ; 
-    delete []colsw ;
-}
 
 
 
@@ -1393,9 +1310,6 @@ void threediag(double *a,int n,double eps)
         }
     }
 
-
-
-
 }
 
 double trace(double *a, int n)
@@ -1415,3 +1329,196 @@ double trace(double *a, int n)
 
     return s;
 }
+
+
+void QR_refl(double *a,int n, double eps,int &itr)
+{
+    
+    int it,j,k;
+    double *x0,*x1;
+    x0 = new double[n]();
+    x1 = new double[n]();
+
+    for(int r = 0 ; r < n - 1; r++)
+    {
+        int index = n - r;
+
+        if(fabs(a[(index - 1)*n + index - 2]) < eps)
+            continue;
+        
+        double sk = a[(index - 1) * n + (index - 1)] + 0.5 * a[(index - 1) * n + (index - 2)];
+
+        
+        // printf("sk = %lf\n",sk);
+
+        for( it = 0;  it < ITER; it++)
+        {
+            for(int i = 0; i < index; i++)
+                a[i*n + i] -= sk;
+            
+            for(int k = 0 ; k < index -1; k++)
+            {
+                double c = a[(k+1)*n + k];
+                double b = a[k*n + k];
+                double nrm = sqrt(c*c + b*b);
+                nrm = (nrm < 0 ? -nrm:nrm);
+                x0[k] = a[k*n+k] - nrm;
+                x1[k] = a[(k + 1)*n + k];
+                double sqr = sqrt(x0[k] * x0[k] + x1[k] * x1[k]);
+
+                if(sqr < eps)
+                    continue;
+                
+                x0[k] = x0[k]/sqr;
+                x1[k] = x1[k]/sqr;
+
+                a[k * n + k] = nrm;
+                a[(k + 1) * n + k] = 0;
+                int cond = (k + 3 < index ? k + 3 : index);
+                for (j = k + 1; j < cond; j++)
+                {
+                    double qq = 2 * (a[k * n + j] * x0[k] + a[(k + 1) * n + j] * x1[k]);
+                    if (fabs(qq) < 1e-64)
+                        continue;
+                    
+                    a[k * n + j] = a[k * n + j] - qq * x0[k];
+                    a[(k + 1) * n + j] = a[(k + 1) * n + j] - qq * x1[k];
+                }
+            }
+
+            for (k = 0; k < index - 1; k++)
+            {
+                int cond = (k + 3 < index ? k + 3 : index);
+                for (j = k; j < cond; j++)
+                {
+                    double qq = 2 * (a[j * n + k] * x0[k] + a[j * n + k + 1] * x1[k]);
+                    if (fabs(qq) < 1e-64)
+                        continue;
+                    
+                    a[j * n + k] = a[j * n + k] - qq * x0[k];
+                    a[j * n + (k + 1)] = a[j * n + (k + 1)] - qq * x1[k];
+                }
+            }
+
+            for (int i = 0; i < index; i++)
+            {
+                for (j = i + 1; j < (i + 3 < index ? i + 3 : index); j++)
+                {
+                    a[i * n + j] = a[j * n + i];
+                }
+            }
+
+            for (int i = 0; i < index; i++)
+            {
+                a[i * n + i] += sk;
+            }
+
+            if (fabs(a[(index - 1) * n + index - 2]) < eps)
+            {
+                break;
+            }
+            sk = a[(index - 1) * n + (index - 1)] + 0.5 * a[(index - 1) * n + (index - 2)];
+            // printlxn(a,n,n,n);
+        }
+
+        itr += it;
+
+    }
+
+    delete [] x0;
+    delete [] x1;
+
+}
+
+
+
+<<<<<<< HEAD
+void threediag(double *a,int n,double eps)
+{
+    if(!a)
+    {
+        printf("error in threediag\n");
+        return;
+    }
+
+
+    for(int j = 0 ; j < n ; j++)
+    {
+        for(int i = n - 1; i >= j + 2; i--)
+        {
+            double x = a[(i-1) * n + j];
+            double y = a[(i) * n + j];
+
+            // printf("fabs(y) = %lf eps = %lf\n",fabs(y),eps);
+
+            if(fabs(y) < eps) continue;
+
+            double r = sqrt(x*x+y*y);
+            double x1 = x/r;
+            double x2 = -y/r;
+
+            a[(i-1) * n + j] = x1 * x - y * x2;
+            a[(i) * n + j] = x2 * x + y * x1;
+
+            //mult all others columns T*A
+            for(int s = j + 1; s < n; s++)
+            {
+                double s1 = a[(i-1) * n + s];
+                double s2 = a[(i) * n + s];
+                a[(i-1) * n + s] = x1 * s1 - s2 * x2;
+                a[(i) * n + s] = x2 * s1 + s2 * x1;
+            }
+
+             // A*T^{t}
+            for(int s = 0; s < n; s++)
+            {
+                double s1 = a[s * n + (i-1)];
+                double s2 = a[s * n + i];
+                a[s * n + (i-1)] = x1 * s1 - s2 * x2;
+                a[s * n + i] = x2 * s1 + s2 * x1;
+            }
+
+            a[i * n + j] = 0;
+            a[j * n + i] = 0;
+        }
+    }
+=======
+>>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')
+
+
+
+
+<<<<<<< HEAD
+}
+
+double trace(double *a, int n)
+{
+    if(!a)
+    {
+        printf("error in trace\n");
+        return -1;
+    }
+
+    double s = 0;
+
+    for(int i = 0 ; i < n ; i++)
+    {
+        s += a[i * n + i];
+    }
+
+    return s;
+}
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')
