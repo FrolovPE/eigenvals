@@ -1,9 +1,6 @@
 #include <iostream>
 #include "lib.h"
-<<<<<<< HEAD
-=======
 #include <time.h>
->>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')
 #include <fenv.h>
 int feenableexcept(int excepts);
 int fedisableexcept(int excepts);
@@ -83,9 +80,6 @@ int main(int argc, char **argv)
     }
 
     
-<<<<<<< HEAD
-
-=======
     double norma = normofmatrix(a,n);
     for(int i = 0; i < n; i++)
     {
@@ -94,23 +88,11 @@ int main(int argc, char **argv)
             r2 += a[i * n + j] * a[j * n + i];
         }
     }
->>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')
 
     printf("Matrix A;\n");
     printlxn(a,n,n,m);
 
     double trA = trace(a,n);
-<<<<<<< HEAD
-
-    threediag(a,n,eps*normofmatrix(a,n));
-
-    double trdA = trace(a,n);
-
-    printlxn(a,n,n,m);
-
-    printf("trA = %lf trdA = %lf\n",trA,trdA);
-
-=======
     t1 = clock();
     threediag(a,n,eps*normofmatrix(a,n));
     t1 = (clock() - t1)/CLOCKS_PER_SEC;
@@ -158,7 +140,6 @@ int main(int argc, char **argv)
     printf("\n");
 
     report(argv[0],r1,r2,t1,t2,its,n);
->>>>>>> 3591345 ('Mon Dec 22 00:44:48 ')
 
     delete []a;
 }
